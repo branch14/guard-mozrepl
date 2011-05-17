@@ -7,7 +7,12 @@ module Guard
 
     def initialize(watchers=[], options={})
       super
-      @options = options
+      @options = {
+        :host => options[:host] || 'localhost',
+        :port => options[:port] || 4242,
+        :verbose => options[:verbose] || false
+      }
+      mozrepl
     end
 
     # Called once when Guard starts
@@ -36,6 +41,8 @@ module Guard
 
     # Called on file(s) modifications
     def run_on_change(paths)
+      return true if @serious_issue
+      puts "Reload tab via MozRepl for #{paths * ' '}" if @options[:verbose]
       reload_current_tab!
     end
 
@@ -44,6 +51,7 @@ module Guard
     def reload_current_tab!
       mozrepl.cmd('content.location.reload();')
     rescue
+      warn "Error sending command to MozRepl. Attempting to reconnect..." if @options[:verbose]
       @mozrepl = nil
       # retry
       mozrepl.cmd('content.location.reload();')
@@ -55,7 +63,8 @@ module Guard
       @mozrepl = Net::Telnet::new("Host" => @options[:host],
                                   "Port" => @options[:port])
     rescue
-      warn "Not able to connect to MozRepl."
+      warn "Not able to connect to MozRepl. Install/start MozRepl, or simply ignore this message."
+      @serious_issue = true
     end
 
     def close!
