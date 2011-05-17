@@ -42,19 +42,47 @@ module Guard
     # Called on file(s) modifications
     def run_on_change(paths)
       return true if @serious_issue
-      puts "Reload tab via MozRepl for #{paths * ' '}" if @options[:verbose]
-      reload_current_tab!
+      reload_tab = false
+      paths.each do |path|
+        case path
+        when /\.css$/ then reload_css(path)
+        when /\.js$/ then reload_js(path)
+        else reload_tab = true
+        end
+      end
+      if reload_tab
+        reload_current_tab(paths)
+      end
     end
 
     private
 
-    def reload_current_tab!
-      mozrepl.cmd('content.location.reload();')
+    def reload_css(path)
+      puts "Reload css via MozRepl for #{path}" if @options[:verbose]
+      # TODO this is a hack
+      path = path.gsub('public/', '')
+      invoke "reload.css(#{path})"
+    end
+
+    def reload_js(path)
+      puts "Reload js via MozRepl for #{path}" if @options[:verbose]
+      # TODO this is a hack
+      path = path.gsub('public/', '')
+      invoke "reload.js(#{path})"
+    end
+
+    def reload_current_tab(paths)
+      puts "Reload tab via MozRepl for #{paths * ' '}" if @options[:verbose]
+      invoke 'content.location.reload();'
+    end
+
+    def invoke(cmd)
+      mozrepl.cmd cmd
     rescue
       warn "Error sending command to MozRepl. Attempting to reconnect..." if @options[:verbose]
       @mozrepl = nil
       # retry
-      mozrepl.cmd('content.location.reload();')
+      mozrepl.cmd cmd
     end
 
     def mozrepl
@@ -62,13 +90,18 @@ module Guard
       puts "Guard connecting to MozRepl at #{@options[:host]}:#{@options[:port]}"
       @mozrepl = Net::Telnet::new("Host" => @options[:host],
                                   "Port" => @options[:port])
+      @mozrepl.cmd(reload_code)
     rescue
       warn "Not able to connect to MozRepl. Install/start MozRepl, or simply ignore this message."
       @serious_issue = true
     end
 
     def close!
-      @mozrepl.close
+      @mozrepl.close if @mozrepl
+    end
+
+    def reload_code
+      File.read(File.expand_path(File.join(%w(.. reload.js)), __FILE__))
     end
 
   end
