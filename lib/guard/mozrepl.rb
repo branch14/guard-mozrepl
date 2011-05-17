@@ -43,11 +43,19 @@ module Guard
 
     def reload_current_tab!
       mozrepl.cmd('content.location.reload();')
+    rescue
+      @mozrepl = nil
+      # retry
+      mozrepl.cmd('content.location.reload();')
     end
 
     def mozrepl
-      @mozrepl ||= Net::Telnet::new("Host" => @options[:host],
-                                    "Port" => @options[:port])
+      return @mozrepl if @mozrepl
+      puts "Guard connecting to MozRepl at #{@options[:host]}:#{@options[:port]}"
+      @mozrepl = Net::Telnet::new("Host" => @options[:host],
+                                  "Port" => @options[:port])
+    rescue
+      warn "Not able to connect to MozRepl."
     end
 
     def close!
