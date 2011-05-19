@@ -50,36 +50,30 @@ module Guard
         else reload_tab = true
         end
       end
-      if reload_tab
-        reload_current_tab(paths)
-      end
+      reload_current_tab(paths) if reload_tab
     end
 
     private
 
     def reload_css(path)
-      puts "Reload css via MozRepl for #{path}" if @options[:verbose]
-      # TODO this is a hack
-      path = path.gsub('public/', '')
-      invoke "reload.css(#{path})"
+      log "Reload css via MozRepl for #{path}"
+      invoke "reload.css(#{path});"
     end
 
     def reload_js(path)
-      puts "Reload js via MozRepl for #{path}" if @options[:verbose]
-      # TODO this is a hack
-      path = path.gsub('public/', '')
-      invoke "reload.js(#{path})"
+      log "Reload js via MozRepl for #{path}"
+      invoke "reload.js(#{path});"
     end
 
     def reload_current_tab(paths)
-      puts "Reload tab via MozRepl for #{paths * ' '}" if @options[:verbose]
+      log "Reload tab via MozRepl for #{paths * ' '}"
       invoke 'content.location.reload();'
     end
 
     def invoke(cmd)
       mozrepl.cmd cmd
     rescue
-      warn "Error sending command to MozRepl. Attempting to reconnect..." if @options[:verbose]
+      log "Error sending command to MozRepl. Attempting to reconnect..."
       @mozrepl = nil
       # retry
       mozrepl.cmd cmd
@@ -102,6 +96,10 @@ module Guard
 
     def reload_code
       File.read(File.expand_path(File.join(%w(.. reload.js)), __FILE__))
+    end
+
+    def log(msg)
+      puts msg if @options[:verbose]
     end
 
   end
