@@ -1,8 +1,8 @@
 guard 'mozrepl' do
-  watch(%r{app/.+\.(erb|haml)})
-  watch(%r{app/helpers/.+\.rb})
-  watch(%r{public/.+\.(css|js|html)})
-  watch(%r{config/locales/.+\.yml})
+  watch(/app\/.+\.(erb|haml)/)
+  watch(/app\/helpers\/.+\.rb/)
+  watch(/public\/(.+\.(css|js|html))/) { |m| m[1] }
+  watch(/config\/locales\/.+\.yml/)
 end
 
 ### or with options...

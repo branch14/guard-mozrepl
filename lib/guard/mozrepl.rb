@@ -57,12 +57,12 @@ module Guard
 
     def reload_css(path)
       log "Reload css via MozRepl for #{path}"
-      invoke "reload.css(#{path});"
+      invoke "reload.css('#{path}');"
     end
 
     def reload_js(path)
       log "Reload js via MozRepl for #{path}"
-      invoke "reload.js(#{path});"
+      invoke "reload.js('#{path}');"
     end
 
     def reload_current_tab(paths)
@@ -71,6 +71,7 @@ module Guard
     end
 
     def invoke(cmd)
+      log "invoking: #{cmd}"
       log mozrepl.cmd cmd
     rescue
       log "Error sending command to MozRepl. Attempting to reconnect..."
