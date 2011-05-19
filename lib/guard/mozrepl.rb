@@ -71,12 +71,12 @@ module Guard
     end
 
     def invoke(cmd)
-      mozrepl.cmd cmd
+      log mozrepl.cmd cmd
     rescue
       log "Error sending command to MozRepl. Attempting to reconnect..."
       @mozrepl = nil
       # retry
-      mozrepl.cmd cmd
+      log mozrepl.cmd cmd
     end
 
     def mozrepl
@@ -84,7 +84,7 @@ module Guard
       puts "Guard connecting to MozRepl at #{@options[:host]}:#{@options[:port]}"
       @mozrepl = Net::Telnet::new("Host" => @options[:host],
                                   "Port" => @options[:port])
-      @mozrepl.cmd(reload_code)
+      log @mozrepl.cmd(reload_code)
     rescue
       warn "Not able to connect to MozRepl. Install/start MozRepl, or simply ignore this message."
       @serious_issue = true
